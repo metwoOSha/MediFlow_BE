@@ -1,0 +1,11 @@
+{
+    "[sql]": {
+        "editor.defaultFormatter": "inferrinizzard.prettier-sql-vscode",
+        "editor.formatOnSave": true
+    },
+    "Prettier-SQL-VSCode.SQLFlavourOverride": "postgresql",
+    "Prettier-SQL-VSCode.keywordCase": "upper",
+    "Prettier-SQL-VSCode.indentStyle": "standard",
+    "Prettier-SQL-VSCode.expressionWidth": 60,
+    "Prettier-SQL-VSCode.newlineBeforeSemicolon": false
+}

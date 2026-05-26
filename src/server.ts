@@ -1,0 +1,33 @@
+import express, { type Request, type Response } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+
+import { PORT } from './config/app.config.js';
+import loggerMiddleware from './middleware/loggerMiddleware.js';
+import errorMiddleware from './middleware/errorMiddleware.js';
+
+import authRoutes from './routes/auth.routes.js';
+import doctorsRoutes from './routes/doctors.routes.js';
+import specializationsRoutes from './routes/specializations.routes.js';
+import appointmentsRoutes from './routes/appointments.routes.js';
+
+const app = express();
+app.use(loggerMiddleware);
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+
+app.use('/auth', authRoutes);
+app.use('/doctors', doctorsRoutes);
+app.use('/specializations', specializationsRoutes);
+app.use('/appointments', appointmentsRoutes);
+
+app.use((req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+});
+
+app.use(errorMiddleware);
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
