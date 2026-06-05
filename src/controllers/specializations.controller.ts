@@ -3,7 +3,9 @@ import pool from '../db/index.js';
 
 export async function getSpecializations(req: Request, res: Response, next: NextFunction) {
     try {
-        const specializations = await pool.query('SELECT * FROM specializations');
+        const specializations = await pool.query(
+            'SELECT s.id, s.specialization_name, COUNT(d.id)::int as doctors_count FROM specializations s LEFT JOIN doctors d ON d.specialization_id = s.id GROUP BY s.id'
+        );
 
         res.status(200).json(specializations.rows);
     } catch (err) {
@@ -15,9 +17,10 @@ export async function postSpecialization(req: Request, res: Response, next: Next
     try {
         const { specialization_name } = req.body;
 
-        const specialization = await pool.query('INSERT INTO specializations (specialization_name) VALUES($1) RETURNING *', [
-            specialization_name,
-        ]);
+        const specialization = await pool.query(
+            'INSERT INTO specializations (specialization_name) VALUES($1) RETURNING *',
+            [specialization_name]
+        );
 
         res.status(201).json(specialization.rows[0]);
     } catch (err) {

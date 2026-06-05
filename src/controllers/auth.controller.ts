@@ -23,7 +23,14 @@ export async function register(req: Request, res: Response, next: NextFunction) 
 
         const token = createToken(user.rows[0]);
 
-        res.status(201).json({ user: user.rows[0], token });
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        res.status(201).json({ user: user.rows[0] });
     } catch (err) {
         next(err);
     }
@@ -35,7 +42,9 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 
         const normalizedEmail = email.trim().toLowerCase();
 
-        const user = await pool.query('SELECT id, name, surname, email, password, role FROM users WHERE email = $1', [normalizedEmail]);
+        const user = await pool.query('SELECT id, name, surname, email, password, role FROM users WHERE email = $1', [
+            normalizedEmail,
+        ]);
 
         if (user.rows.length === 0) return res.status(401).json({ message: 'Invalid email or password' });
 
@@ -46,7 +55,14 @@ export async function login(req: Request, res: Response, next: NextFunction) {
         const token = createToken(user.rows[0]);
 
         const { password: _, ...safeUser } = user.rows[0];
-        res.status(200).json({ user: safeUser, token });
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        res.status(200).json({ user: safeUser });
     } catch (err) {
         next(err);
     }

@@ -9,38 +9,53 @@ export async function getDoctors(req: Request, res: Response, next: NextFunction
         const limit = Number(req.query.limit) || 10;
         const offset = (page - 1) * limit;
 
-        let query = `
-            SELECT doctors.*, specializations.specialization_name 
-            FROM doctors
-            LEFT JOIN specializations ON doctors.specialization_id = specializations.id
-            WHERE 1=1
-        `;
         const params: unknown[] = [];
+        const conditions: string[] = [];
 
         if (specialization) {
             params.push(specialization);
-            query += ` AND specializations.specialization_name = $${params.length}`;
+            conditions.push(`specializations.specialization_name = $${params.length}`);
         }
 
         if (category) {
             params.push(category);
-            query += ` AND doctors.category = $${params.length}`;
+            conditions.push(`doctors.category = $${params.length}`);
         }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
         const allowedSort = ['name', 'category'];
         const allowedOrder = ['asc', 'desc'];
 
-        const sortField = allowedSort.includes(sort as string) ? sort : 'name';
-        const sortOrder = allowedOrder.includes(order as string) ? order : 'asc';
+        const sortField = allowedSort.includes(sort as string) ? (sort as string) : 'name';
+        const sortOrder = allowedOrder.includes(order as string) ? (order as string) : 'asc';
 
-        query += ` ORDER BY doctors.${sortField} ${sortOrder}`;
-
-        query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        const query = `
+            SELECT
+                doctors.*,
+                specializations.specialization_name,
+                MIN(schedules.time_start) AS time_start,
+                MAX(schedules.time_end) AS time_end,
+                array_agg(schedules.day_of_week ORDER BY schedules.day_of_week) AS day_of_week
+            FROM doctors
+            LEFT JOIN specializations ON doctors.specialization_id = specializations.id
+            LEFT JOIN schedules ON schedules.doctor_id = doctors.id
+            ${whereClause}
+            GROUP BY doctors.id, specializations.specialization_name
+            ORDER BY doctors.${sortField} ${sortOrder}
+            LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+        `;
         params.push(limit, offset);
 
         const result = await pool.query(query, params);
 
-        const countResult = await pool.query('SELECT COUNT(*) FROM doctors');
+        const countQuery = `
+            SELECT COUNT(DISTINCT doctors.id)
+            FROM doctors
+            LEFT JOIN specializations ON doctors.specialization_id = specializations.id
+            ${whereClause}
+        `;
+        const countResult = await pool.query(countQuery, params.slice(0, params.length - 2));
 
         const total = Number(countResult.rows[0].count);
 
