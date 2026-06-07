@@ -4,7 +4,7 @@ import pool from '../db/index.js';
 export async function getSpecializations(req: Request, res: Response, next: NextFunction) {
     try {
         const specializations = await pool.query(
-            'SELECT s.id, s.specialization_name, COUNT(d.id)::int as doctors_count FROM specializations s LEFT JOIN doctors d ON d.specialization_id = s.id GROUP BY s.id'
+            'SELECT s.id, s.specialization_name, s.icon_id, s.color_id, COUNT(d.id)::int as doctors_count FROM specializations s LEFT JOIN doctors d ON d.specialization_id = s.id GROUP BY s.id'
         );
 
         res.status(200).json(specializations.rows);
