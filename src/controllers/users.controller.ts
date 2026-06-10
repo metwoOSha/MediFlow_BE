@@ -6,11 +6,19 @@ const PATIENT_FIELDS = 'id, name, surname, email, phone, created_at';
 
 export async function getPatients(req: Request, res: Response, next: NextFunction) {
     try {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 8;
+        const offset = (page - 1) * limit;
+
         const result = await pool.query(
-            `SELECT ${PATIENT_FIELDS} FROM users WHERE role = 'patient' ORDER BY created_at DESC`
+            `SELECT ${PATIENT_FIELDS} FROM users WHERE role = 'patient' ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+            [limit, offset]
         );
 
-        res.status(200).json({ patients: result.rows, total: result.rows.length });
+        const countResult = await pool.query(`SELECT COUNT(*) FROM users WHERE role = 'patient'`);
+        const total = Number(countResult.rows[0].count);
+
+        res.status(200).json({ patients: result.rows, total, page, limit });
     } catch (err) {
         next(err);
     }

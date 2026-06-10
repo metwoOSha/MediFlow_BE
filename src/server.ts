@@ -13,6 +13,8 @@ import specializationsRoutes from './routes/specializations.routes.js';
 import appointmentsRoutes from './routes/appointments.routes.js';
 import usersRoutes from './routes/users.routes.js';
 
+import './cron/appointments.cron.js';
+
 const app = express();
 app.use(loggerMiddleware);
 app.use(cookieParser());

@@ -47,7 +47,7 @@ CREATE TABLE
 		doctor_id UUID REFERENCES doctors (id) ON DELETE CASCADE,
 		date DATE NOT NULL,
 		time TIME NOT NULL,
-		status VARCHAR(15) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled')),
+		status VARCHAR(15) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled','completed')),
 		created_at TIMESTAMP DEFAULT now (),
 		UNIQUE (doctor_id, date, time)
 	);
