@@ -1,6 +1,33 @@
 import type { Request, Response, NextFunction } from 'express';
 import pool from '../db/index.js';
 
+export async function getAllAppointments(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { date } = req.query as { date?: string };
+
+        const result = await pool.query(
+            `SELECT
+                appointments.*,
+                users.name        AS patient_name,
+                users.surname     AS patient_surname,
+                doctors.name      AS doctor_name,
+                doctors.surname   AS doctor_surname,
+                specializations.specialization_name
+            FROM appointments
+            JOIN users           ON appointments.user_id        = users.id
+            JOIN doctors         ON appointments.doctor_id      = doctors.id
+            JOIN specializations ON doctors.specialization_id   = specializations.id
+            ${date ? 'WHERE appointments.date::date = $1' : ''}
+            ORDER BY appointments.time ASC`,
+            date ? [date] : [],
+        );
+
+        res.status(200).json(result.rows);
+    } catch (err) {
+        next(err);
+    }
+}
+
 export async function postAppointments(req: Request, res: Response, next: NextFunction) {
     try {
         const user_id = req.user?.id;

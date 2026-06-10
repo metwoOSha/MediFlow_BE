@@ -4,6 +4,7 @@ import {
     getMyAppointments,
     cancelAppointment,
     updateAppointmentStatus,
+    getAllAppointments,
 } from '../controllers/appointments.controller.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { adminMiddleware } from '../middleware/adminMiddleware.js';
@@ -12,6 +13,7 @@ import { createAppointmentSchema, updateAppointmentSchema } from '../schemas/app
 
 const router = Router();
 
+router.get('/', authMiddleware, adminMiddleware, getAllAppointments);
 router.post('/', authMiddleware, validateMiddleware(createAppointmentSchema), postAppointments);
 router.get('/my', authMiddleware, getMyAppointments);
 router.patch('/:id/cancel', authMiddleware, cancelAppointment);
