@@ -9,13 +9,25 @@ export async function getPatients(req: Request, res: Response, next: NextFunctio
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 8;
         const offset = (page - 1) * limit;
+        const { search } = req.query as { search?: string };
+
+        const params: unknown[] = [];
+        const conditions: string[] = [`role = 'patient'`];
+
+        if (search) {
+            params.push(`%${search}%`);
+            conditions.push(`(name ILIKE $${params.length} OR surname ILIKE $${params.length} OR email ILIKE $${params.length})`);
+        }
+
+        const where = `WHERE ${conditions.join(' AND ')}`;
+        params.push(limit, offset);
 
         const result = await pool.query(
-            `SELECT ${PATIENT_FIELDS} FROM users WHERE role = 'patient' ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
-            [limit, offset]
+            `SELECT ${PATIENT_FIELDS} FROM users ${where} ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+            params
         );
 
-        const countResult = await pool.query(`SELECT COUNT(*) FROM users WHERE role = 'patient'`);
+        const countResult = await pool.query(`SELECT COUNT(*) FROM users ${where}`, params.slice(0, -2));
         const total = Number(countResult.rows[0].count);
 
         res.status(200).json({ patients: result.rows, total, page, limit });

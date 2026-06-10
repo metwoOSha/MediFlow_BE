@@ -3,7 +3,7 @@ import pool from '../db/index.js';
 
 export async function getDoctors(req: Request, res: Response, next: NextFunction) {
     try {
-        const { specialization, category, sort, order } = req.query;
+        const { specialization, category, sort, order, search } = req.query;
 
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 8;
@@ -20,6 +20,11 @@ export async function getDoctors(req: Request, res: Response, next: NextFunction
         if (category) {
             params.push(category);
             conditions.push(`doctors.category = $${params.length}`);
+        }
+
+        if (search) {
+            params.push(`%${search}%`);
+            conditions.push(`(doctors.name ILIKE $${params.length} OR doctors.surname ILIKE $${params.length})`);
         }
 
         const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';

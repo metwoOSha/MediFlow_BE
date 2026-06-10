@@ -9,7 +9,7 @@ import {
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { adminMiddleware } from '../middleware/adminMiddleware.js';
 import { validateMiddleware } from '../middleware/validateMiddleware.js';
-import { createAppointmentSchema, updateAppointmentSchema } from '../schemas/appointments.schema.js';
+import { createAppointmentSchema, updateAppointmentSchema, updateAppointmentStatusSchema } from '../schemas/appointments.schema.js';
 
 const router = Router();
 
@@ -21,7 +21,7 @@ router.patch(
     '/:id/status',
     authMiddleware,
     adminMiddleware,
-    validateMiddleware(updateAppointmentSchema),
+    validateMiddleware(updateAppointmentStatusSchema),
     updateAppointmentStatus
 );
 

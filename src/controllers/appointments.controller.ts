@@ -35,15 +35,16 @@ export async function getAllAppointments(req: Request, res: Response, next: Next
 
 export async function postAppointments(req: Request, res: Response, next: NextFunction) {
     try {
-        const user_id = req.user?.id;
+        const jwt_user_id = req.user?.id;
+        const { doctor_id, date, time, user_id, status } = req.body;
 
-        if (!user_id) return res.status(401).json({ message: 'Unauthorized' });
-
-        const { doctor_id, date, time } = req.body;
+        const effective_user_id = user_id ?? jwt_user_id;
+        if (!effective_user_id) return res.status(401).json({ message: 'Unauthorized' });
 
         const appointment = await pool.query(
-            'INSERT INTO appointments(user_id, doctor_id, date, time) VALUES ($1,$2,$3,$4) RETURNING *',
-            [user_id, doctor_id, date, time]
+            `INSERT INTO appointments(user_id, doctor_id, date, time${status ? ', status' : ''})
+             VALUES ($1,$2,$3,$4${status ? ',$5' : ''}) RETURNING *`,
+            status ? [effective_user_id, doctor_id, date, time, status] : [effective_user_id, doctor_id, date, time],
         );
 
         res.status(201).json(appointment.rows[0]);
