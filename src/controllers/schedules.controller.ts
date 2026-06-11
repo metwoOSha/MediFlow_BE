@@ -6,12 +6,18 @@ export async function postScheduleByDoctorId(req: Request, res: Response, next: 
         const id = req.params.id;
         const { day_of_week, time_start, time_end, slot_duration_minutes } = req.body;
 
+        const placeholders = (day_of_week as number[])
+            .map((_, i) => `($1, $${i + 2}, $${day_of_week.length + 2}, $${day_of_week.length + 3}, $${day_of_week.length + 4})`)
+            .join(', ');
+
+        const values = [id, ...day_of_week, time_start, time_end, slot_duration_minutes];
+
         const schedule = await pool.query(
-            'INSERT INTO schedules (doctor_id, day_of_week, time_start,time_end, slot_duration_minutes) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [id, day_of_week, time_start, time_end, slot_duration_minutes]
+            `INSERT INTO schedules (doctor_id, day_of_week, time_start, time_end, slot_duration_minutes) VALUES ${placeholders} RETURNING *`,
+            values
         );
 
-        res.status(201).json(schedule.rows[0]);
+        res.status(201).json(schedule.rows);
     } catch (err) {
         next(err);
     }
