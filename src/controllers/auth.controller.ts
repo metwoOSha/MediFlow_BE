@@ -36,6 +36,26 @@ export async function register(req: Request, res: Response, next: NextFunction) 
     }
 }
 
+export async function changePassword(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { id } = req.user as { id: string };
+        const { currentPassword, newPassword } = req.body;
+
+        const user = await pool.query('SELECT password FROM users WHERE id = $1', [id]);
+        if (user.rows.length === 0) return res.status(404).json({ message: 'User not found' });
+
+        const valid = await bcrypt.compare(currentPassword, user.rows[0].password);
+        if (!valid) return res.status(400).json({ message: 'Current password is incorrect' });
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+        await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashed, id]);
+
+        res.status(200).json({ ok: true });
+    } catch (err) {
+        next(err);
+    }
+}
+
 export async function login(req: Request, res: Response, next: NextFunction) {
     try {
         const { email, password } = req.body;
