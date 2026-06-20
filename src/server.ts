@@ -87,6 +87,29 @@ app.get('/docs', (_req, res) => {
     `);
 });
 
+app.get('/docs/debug', (_req, res) => {
+    const path = require('path');
+    const glob = require('glob');
+
+    const patterns = [
+        './src/routes/*.ts',
+        './dist/routes/*.js',
+        path.join(process.cwd(), 'src/routes/*.ts'),
+        path.join(process.cwd(), 'dist/routes/*.js'),
+    ];
+
+    const results: Record<string, string[]> = {};
+    patterns.forEach(p => {
+        try {
+            results[p] = glob.sync(p);
+        } catch (e: any) {
+            results[p] = [`ERROR: ${e.message}`];
+        }
+    });
+
+    res.json({ cwd: process.cwd(), results });
+});
+
 app.use((req, res) => {
     res.status(404).json({ message: 'Route not found' });
 });
