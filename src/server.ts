@@ -2,6 +2,8 @@ import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.config.js';
 
 import { PORT } from './config/app.config.js';
 import loggerMiddleware from './middleware/loggerMiddleware.js';
@@ -36,6 +38,8 @@ app.use('/appointments', appointmentsRoutes);
 app.use('/users', usersRoutes);
 
 app.use('/cron', cronRoutes);
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use((req, res) => {
     res.status(404).json({ message: 'Route not found' });
