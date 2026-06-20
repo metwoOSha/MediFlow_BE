@@ -21,7 +21,24 @@ import './cron/appointments.cron.js';
 const app = express();
 app.use(loggerMiddleware);
 app.use(cookieParser());
-app.use(helmet());
+app.use((req, res, next) => {
+    if (req.path.startsWith('/docs')) {
+        helmet({
+            contentSecurityPolicy: {
+                directives: {
+                    defaultSrc: ["'self'"],
+                    scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+                    styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+                    imgSrc: ["'self'", "data:", "https://unpkg.com"],
+                    connectSrc: ["'self'", "https://unpkg.com"],
+                    workerSrc: ["'self'", "blob:"],
+                },
+            },
+        })(req, res, next);
+    } else {
+        helmet()(req, res, next);
+    }
+});
 app.use(
     cors({
         origin: process.env.CLIENT_URL || 'http://localhost:3000',
