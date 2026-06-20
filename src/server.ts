@@ -13,6 +13,8 @@ import specializationsRoutes from './routes/specializations.routes.js';
 import appointmentsRoutes from './routes/appointments.routes.js';
 import usersRoutes from './routes/users.routes.js';
 
+import cronRoutes from './routes/cron.routes.js';
+
 import './cron/appointments.cron.js';
 
 const app = express();
@@ -32,6 +34,8 @@ app.use('/doctors', doctorsRoutes);
 app.use('/specializations', specializationsRoutes);
 app.use('/appointments', appointmentsRoutes);
 app.use('/users', usersRoutes);
+
+app.use('/cron', cronRoutes);
 
 app.use((req, res) => {
     res.status(404).json({ message: 'Route not found' });
