@@ -40,8 +40,9 @@ const router = Router();
 router.get('/seed', async (req, res, next) => {
     try {
         const secret = req.headers['x-cron-secret'];
+        const isVercelCron = req.headers['x-vercel-cron'] === '1';
 
-        if (secret !== process.env.CRON_SECRET) {
+        if (!isVercelCron && secret !== process.env.CRON_SECRET) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
